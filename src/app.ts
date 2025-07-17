@@ -1,46 +1,65 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const allowedOrigins = [
-  'http://localhost:4200',
-  'http://127.0.0.1:4200',
-  'https://fascinating-basbousa-450c15.netlify.app',
-  'https://ng-converter-be-production.up.railway.app' // Add your Railway URL too
-];
 
-app.use(cors({
-  origin: function (origin, callback) {
+// Type for CORS origin callback
+type CorsCallback = (error: Error | null, allow?: boolean) => void;
+
+// Configure CORS with proper typing
+const corsOptions: cors.CorsOptions = {
+  origin: (origin: string | undefined, callback: CorsCallback) => {
+    const allowedOrigins = [
+      'http://localhost:4200',
+      'http://127.0.0.1:4200',
+      'https://fascinating-basbousa-450c15.netlify.app',
+      'https://ng-converter-be-production.up.railway.app'
+    ];
+    
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    
-    const msg = `The CORS policy for this site does not allow access from ${origin}`;
-    return callback(new Error(msg), false);
   },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.options('*', cors());
+  optionsSuccessStatus: 200
+};
 
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
+// Middleware to set headers manually as fallback
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 app.use(express.json());
 
-const BASE_URL = 'https://api.freecurrencyapi.com/v1'
-app.get('/api/currencies', async (req, res) => {
+const BASE_URL = 'https://api.freecurrencyapi.com/v1';
+
+// API endpoints
+app.get('/api/currencies', async (req: Request, res: Response) => {
   try {
     const response = await axios.get(`${BASE_URL}/currencies`, {
-      params: {
-        apikey: process.env.API_KEY
-      }
+      params: { apikey: process.env.API_KEY }
     });
 
     res.json({
@@ -48,19 +67,25 @@ app.get('/api/currencies', async (req, res) => {
       data: Object.values(response.data.data)
     });
 
-  } catch (error) {
-    console.error('Error fetching currencies:', error);
-    res.status(500).json({ error: 'Failed to fetch currencies' });
+  } catch (error: unknown) {
+    const err = error as AxiosError;
+    console.error('Error fetching currencies:', err.message);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch currencies',
+      details: err.message 
+    });
   }
 });
 
-
-
-app.post('/api/convert', async (req, res) => {
+app.post('/api/convert', async (req: Request, res: Response) => {
   const { from, to, amount } = req.body;
 
   if (!from || !to || !amount) {
-    return res.status(400).json({ error: 'Missing required parameters' });
+    return res.status(400).json({ 
+      success: false,
+      error: 'Missing required parameters' 
+    });
   }
 
   try {
@@ -85,9 +110,14 @@ app.post('/api/convert', async (req, res) => {
         convertedAmount: result
       }
     });
-  } catch (error) {
-    console.error('Error converting currency:', error);
-    res.status(500).json({ error: 'Failed to convert currency' });
+  } catch (error: unknown) {
+    const err = error as AxiosError;
+    console.error('Error converting currency:', err.message);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to convert currency',
+      details: err.message 
+    });
   }
 });
 
