@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200',  'https://fascinating-basbousa-450c15.netlify.app/'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
