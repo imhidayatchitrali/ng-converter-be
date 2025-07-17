@@ -22,7 +22,7 @@ const app = (0, express_1.default)();
 const PORT = 3001;
 // Middleware
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app/'],
+    origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -32,20 +32,36 @@ const BASE_URL = 'https://api.freecurrencyapi.com/v1';
 const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2';
 // Get available currencies
 app.get('/api/currencies', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
+        console.log('Fetching currencies from:', `${BASE_URL}/currencies`);
         const response = yield axios_1.default.get(`${BASE_URL}/currencies`, {
-            params: {
-                apikey: API_KEY
-            }
+            params: { apikey: API_KEY },
+            timeout: 5000
         });
+        console.log('Full API response:', response.data);
+        if (!((_a = response.data) === null || _a === void 0 ? void 0 : _a.data)) {
+            throw new Error('Invalid API response structure');
+        }
+        const currencies = Object.values(response.data.data);
+        console.log('Currencies found:', currencies.length);
         res.json({
             success: true,
-            data: Object.values(response.data.data)
+            data: currencies
         });
     }
     catch (error) {
-        console.error('Error fetching currencies:', error);
-        res.status(500).json({ error: 'Failed to fetch currencies' });
+        const err = error;
+        console.error('Full error details:', {
+            message: err.message,
+            stack: err.stack,
+            apiKey: API_KEY ? 'configured' : 'missing'
+        });
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch currencies',
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 }));
 app.post('/api/convert', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
