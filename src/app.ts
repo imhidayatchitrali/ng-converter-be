@@ -6,23 +6,30 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
 const allowedOrigins = [
   'http://localhost:4200',
   'http://127.0.0.1:4200',
-  'https://fascinating-basbousa-450c15.netlify.app'
+  'https://fascinating-basbousa-450c15.netlify.app',
+  'https://ng-converter-be-production.up.railway.app' // Add your Railway URL too
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+    
+    const msg = `The CORS policy for this site does not allow access from ${origin}`;
+    return callback(new Error(msg), false);
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.options('*', cors());
 
 
 app.use(express.json());
