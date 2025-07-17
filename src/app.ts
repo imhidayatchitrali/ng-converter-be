@@ -18,6 +18,7 @@ dotenv.config();
 app.use(express.json());
 
 const BASE_URL="https://api.freecurrencyapi.com/v1"
+const API_KEY="4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2"
 
 
 // Get available currencies
@@ -25,7 +26,7 @@ app.get('/api/currencies', async (req, res) => {
   try {
     const response = await axios.get(`${BASE_URL}/currencies`, {
       params: {
-        apikey: process.env.API_KEY
+        apikey: API_KEY
       }
     });
 
@@ -52,7 +53,7 @@ app.post('/api/convert', async (req, res) => {
   try {
     const response = await axios.get(`${BASE_URL}/latest`, {
       params: {
-        apikey: process.env.API_KEY,
+        apikey: API_KEY,
         base_currency: from,
         currencies: to
       }
