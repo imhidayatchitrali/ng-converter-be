@@ -20,10 +20,10 @@ const corsOptions: cors.CorsOptions = {
       'https://fascinating-basbousa-450c15.netlify.app',
       'https://ng-converter-be-production.up.railway.app'
     ];
-    
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -58,9 +58,18 @@ const BASE_URL = 'https://api.freecurrencyapi.com/v1';
 // API endpoints
 app.get('/api/currencies', async (req: Request, res: Response) => {
   try {
+    if (!process.env.API_KEY) {
+      throw new Error('API_KEY not configured');
+    }
+
     const response = await axios.get(`${BASE_URL}/currencies`, {
-      params: { apikey: process.env.API_KEY }
+      params: { apikey: process.env.API_KEY },
+      timeout: 5000 // 5 second timeout
     });
+
+    if (!response.data?.data) {
+      throw new Error('Invalid API response structure');
+    }
 
     res.json({
       success: true,
@@ -68,23 +77,27 @@ app.get('/api/currencies', async (req: Request, res: Response) => {
     });
 
   } catch (error: unknown) {
-    const err = error as AxiosError;
-    console.error('Error fetching currencies:', err.message);
-    res.status(500).json({ 
+    const err = error as Error;
+    console.error('API Error:', {
+      message: err.message,
+      stack: err.stack,
+      apiKey: process.env.API_KEY ? 'exists' : 'missing'
+    });
+
+    res.status(500).json({
       success: false,
-      error: 'Failed to fetch currencies',
-      details: err.message 
+      error: 'Currency service unavailable',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
-
 app.post('/api/convert', async (req: Request, res: Response) => {
   const { from, to, amount } = req.body;
 
   if (!from || !to || !amount) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      error: 'Missing required parameters' 
+      error: 'Missing required parameters'
     });
   }
 
@@ -113,10 +126,10 @@ app.post('/api/convert', async (req: Request, res: Response) => {
   } catch (error: unknown) {
     const err = error as AxiosError;
     console.error('Error converting currency:', err.message);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       error: 'Failed to convert currency',
-      details: err.message 
+      details: err.message
     });
   }
 });
