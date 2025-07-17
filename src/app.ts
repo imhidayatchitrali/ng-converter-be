@@ -17,9 +17,6 @@ app.use(cors({
 app.use(express.json());
 
 const BASE_URL = 'https://api.freecurrencyapi.com/v1'
-const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2'
-
-
 app.get('/api/currencies', async (req, res) => {
   try {
     const response = await axios.get(`${BASE_URL}/currencies`, {
