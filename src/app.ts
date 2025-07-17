@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
 const app = express();
-const PORT = 3001;
+const PORT = 8080;
+
 
 app.use(cors({
 origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app'],
