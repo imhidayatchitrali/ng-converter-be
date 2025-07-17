@@ -6,12 +6,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+// const PORT = process.env.PORT || 3001;
+const PORT =  3001;
 
-// Type for CORS origin callback
 type CorsCallback = (error: Error | null, allow?: boolean) => void;
 
-// Configure CORS with proper typing
 const corsOptions: cors.CorsOptions = {
   origin: (origin: string | undefined, callback: CorsCallback) => {
     const allowedOrigins = [
@@ -21,7 +20,6 @@ const corsOptions: cors.CorsOptions = {
       'https://ng-converter-be-production.up.railway.app'
     ];
 
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
@@ -36,13 +34,10 @@ const corsOptions: cors.CorsOptions = {
   optionsSuccessStatus: 200
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Handle preflight requests
 app.options('*', cors(corsOptions));
 
-// Middleware to set headers manually as fallback
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -54,16 +49,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(express.json());
 
 const BASE_URL = 'https://api.freecurrencyapi.com/v1';
+const API_KEY='4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2';
 
-// API endpoints
+
 app.get('/api/currencies', async (req: Request, res: Response) => {
   try {
-    if (!process.env.API_KEY) {
+    if (!API_KEY) {
       throw new Error('API_KEY not configured');
     }
 
     const response = await axios.get(`${BASE_URL}/currencies`, {
-      params: { apikey: process.env.API_KEY },
+      params: { apikey:API_KEY },
       timeout: 5000 // 5 second timeout
     });
 
@@ -81,13 +77,13 @@ app.get('/api/currencies', async (req: Request, res: Response) => {
     console.error('API Error:', {
       message: err.message,
       stack: err.stack,
-      apiKey: process.env.API_KEY ? 'exists' : 'missing'
+      apiKey: API_KEY ? 'exists' : 'missing'
     });
 
     res.status(500).json({
       success: false,
       error: 'Currency service unavailable',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      // details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -104,7 +100,8 @@ app.post('/api/convert', async (req: Request, res: Response) => {
   try {
     const response = await axios.get(`${BASE_URL}/latest`, {
       params: {
-        apikey: process.env.API_KEY,
+        // apikey: process.env.API_KEY,
+        apikey: API_KEY,
         base_currency: from,
         currencies: to
       }
