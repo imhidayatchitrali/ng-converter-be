@@ -5,10 +5,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-// const PORT = process.env.PORT || 3001;
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
-// Middleware
 app.use(cors({
   origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -22,7 +20,6 @@ const BASE_URL = 'https://api.freecurrencyapi.com/v1'
 const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2'
 
 
-// Get available currencies
 app.get('/api/currencies', async (req, res) => {
   try {
     const response = await axios.get(`${BASE_URL}/currencies`, {
