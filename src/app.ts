@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
+import dotenv from 'dotenv';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -12,18 +13,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+dotenv.config();
 
 app.use(express.json());
 
-const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2';
-const BASE_URL = 'https://api.freecurrencyapi.com/v1';
 
 // Get available currencies
 app.get('/api/currencies', async (req, res) => {
   try {
-    const response = await axios.get(`${BASE_URL}/currencies`, {
+    const response = await axios.get(`${process.env.BASE_URL}/currencies`, {
       params: {
-        apikey: API_KEY
+        apikey: process.env.API_KEY
       }
     });
 
@@ -48,9 +48,9 @@ app.post('/api/convert', async (req, res) => {
   }
 
   try {
-    const response = await axios.get(`${BASE_URL}/latest`, {
+    const response = await axios.get(`${process.env.BASE_URL}/latest`, {
       params: {
-        apikey: API_KEY,
+        apikey: process.env.API_KEY,
         base_currency: from,
         currencies: to
       }
