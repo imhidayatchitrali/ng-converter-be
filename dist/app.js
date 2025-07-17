@@ -20,7 +20,7 @@ const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
 // Middleware
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+    origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app/'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
