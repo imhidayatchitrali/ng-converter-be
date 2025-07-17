@@ -1,10 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config();
+
 const app = express();
-const PORT = 8080;
+const PORT = 3001;
 
-
+// Middleware
 app.use(cors({
 origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -15,15 +18,13 @@ origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-
 app.use(express.json());
 
 const BASE_URL = 'https://api.freecurrencyapi.com/v1'
-const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2'
-
 
 // Get available currencies
 app.get('/api/currencies', async (req, res) => {
   try {
     console.log('Fetching currencies from:', `${BASE_URL}/currencies`);
     const response = await axios.get(`${BASE_URL}/currencies`, {
-      params: { apikey: API_KEY },
+      params: { apikey: process.env.API_KEY },
       timeout: 5000
     });
 
@@ -46,7 +47,7 @@ app.get('/api/currencies', async (req, res) => {
     console.error('Full error details:', {
       message: err.message,
       stack: err.stack,
-      apiKey: API_KEY ? 'configured' : 'missing'
+      apiKey: process.env.API_KEY ? 'configured' : 'missing'
     });
     res.status(500).json({ 
       success: false,
@@ -67,7 +68,7 @@ app.post('/api/convert', async (req, res) => {
   try {
     const response = await axios.get(`${BASE_URL}/latest`, {
       params: {
-        apikey: API_KEY,
+        apikey: process.env.API_KEY,
         base_currency: from,
         currencies: to
       }
