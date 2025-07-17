@@ -1,14 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
-import dotenv from 'dotenv';
-dotenv.config();
-
 const app = express();
-// const PORT = process.env.PORT || 3001;
 const PORT = 3001;
 
-// Middleware
 app.use(cors({
 origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
