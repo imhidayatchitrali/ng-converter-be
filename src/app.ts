@@ -25,23 +25,40 @@ const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2'
 // Get available currencies
 app.get('/api/currencies', async (req, res) => {
   try {
+    console.log('Fetching currencies from:', `${BASE_URL}/currencies`);
     const response = await axios.get(`${BASE_URL}/currencies`, {
-      params: {
-        apikey: API_KEY
-      }
+      params: { apikey: API_KEY },
+      timeout: 5000
     });
 
+    console.log('Full API response:', response.data);
+    
+    if (!response.data?.data) {
+      throw new Error('Invalid API response structure');
+    }
+
+    const currencies = Object.values(response.data.data);
+    console.log('Currencies found:', currencies.length);
+    
     res.json({
       success: true,
-      data: Object.values(response.data.data)
+      data: currencies
     });
 
-  } catch (error) {
-    console.error('Error fetching currencies:', error);
-    res.status(500).json({ error: 'Failed to fetch currencies' });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Full error details:', {
+      message: err.message,
+      stack: err.stack,
+      apiKey: API_KEY ? 'configured' : 'missing'
+    });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch currencies',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 });
-
 
 
 app.post('/api/convert', async (req, res) => {
