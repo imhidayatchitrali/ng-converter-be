@@ -18,50 +18,25 @@ const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 3001;
-// Configure CORS with proper typing
-const corsOptions = {
-    origin: (origin, callback) => {
-        const allowedOrigins = [
-            'http://localhost:4200',
-            'http://127.0.0.1:4200',
-            'https://fascinating-basbousa-450c15.netlify.app',
-            'https://ng-converter-be-production.up.railway.app'
-        ];
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin)
-            return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST', 'OPTIONS'],
+// const PORT = process.env.PORT || 3001;
+const PORT = 3001;
+// Middleware
+app.use((0, cors_1.default)({
+    origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://fascinating-basbousa-450c15.netlify.app/'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-// Apply CORS middleware
-app.use((0, cors_1.default)(corsOptions));
-// Handle preflight requests
-app.options('*', (0, cors_1.default)(corsOptions));
-// Middleware to set headers manually as fallback
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-});
+    credentials: true
+}));
 app.use(express_1.default.json());
 const BASE_URL = 'https://api.freecurrencyapi.com/v1';
-// API endpoints
+const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2';
+// Get available currencies
 app.get('/api/currencies', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const response = yield axios_1.default.get(`${BASE_URL}/currencies`, {
-            params: { apikey: process.env.API_KEY }
+            params: {
+                apikey: API_KEY
+            }
         });
         res.json({
             success: true,
@@ -69,27 +44,19 @@ app.get('/api/currencies', (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
     }
     catch (error) {
-        const err = error;
-        console.error('Error fetching currencies:', err.message);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to fetch currencies',
-            details: err.message
-        });
+        console.error('Error fetching currencies:', error);
+        res.status(500).json({ error: 'Failed to fetch currencies' });
     }
 }));
 app.post('/api/convert', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { from, to, amount } = req.body;
     if (!from || !to || !amount) {
-        return res.status(400).json({
-            success: false,
-            error: 'Missing required parameters'
-        });
+        return res.status(400).json({ error: 'Missing required parameters' });
     }
     try {
         const response = yield axios_1.default.get(`${BASE_URL}/latest`, {
             params: {
-                apikey: process.env.API_KEY,
+                apikey: API_KEY,
                 base_currency: from,
                 currencies: to
             }
@@ -108,13 +75,8 @@ app.post('/api/convert', (req, res) => __awaiter(void 0, void 0, void 0, functio
         });
     }
     catch (error) {
-        const err = error;
-        console.error('Error converting currency:', err.message);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to convert currency',
-            details: err.message
-        });
+        console.error('Error converting currency:', error);
+        res.status(500).json({ error: 'Failed to convert currency' });
     }
 }));
 app.listen(PORT, () => {
