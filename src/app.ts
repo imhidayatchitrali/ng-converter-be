@@ -31,12 +31,13 @@ app.get('/api/currencies', async (req, res) => {
       success: true,
       data: Object.values(response.data.data)
     });
-    res.json(response.data.data); 
+
   } catch (error) {
     console.error('Error fetching currencies:', error);
     res.status(500).json({ error: 'Failed to fetch currencies' });
   }
 });
+
 
 
 app.post('/api/convert', async (req, res) => {

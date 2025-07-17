@@ -18,7 +18,12 @@ const axios_1 = __importDefault(require("axios"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
 // Middleware
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
 app.use(express_1.default.json());
 const API_KEY = '4E0VK7BnkdeUuh1vegAt808v2IUjzUR6lxcvBMT2';
 const BASE_URL = 'https://api.freecurrencyapi.com/v1';
@@ -30,19 +35,21 @@ app.get('/api/currencies', (req, res) => __awaiter(void 0, void 0, void 0, funct
                 apikey: API_KEY
             }
         });
-        res.json(response.data.data);
+        res.json({
+            success: true,
+            data: Object.values(response.data.data)
+        });
     }
     catch (error) {
         console.error('Error fetching currencies:', error);
         res.status(500).json({ error: 'Failed to fetch currencies' });
     }
 }));
-// Convert currency
-app.get('/api/convert', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { from, to, amount } = req.query;
-    // if (!from || !to || !amount) {
-    //   return res.status(400).json({ error: 'Missing required parameters' });
-    // }
+app.post('/api/convert', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { from, to, amount } = req.body;
+    if (!from || !to || !amount) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+    }
     try {
         const response = yield axios_1.default.get(`${BASE_URL}/latest`, {
             params: {
@@ -54,11 +61,14 @@ app.get('/api/convert', (req, res) => __awaiter(void 0, void 0, void 0, function
         const rate = response.data.data[to];
         const result = parseFloat(amount) * rate;
         res.json({
-            from,
-            to,
-            amount: parseFloat(amount),
-            rate,
-            result
+            success: true,
+            data: {
+                from,
+                to,
+                amount: parseFloat(amount),
+                rate,
+                convertedAmount: result
+            }
         });
     }
     catch (error) {
